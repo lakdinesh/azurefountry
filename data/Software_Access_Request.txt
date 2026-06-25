@@ -1,0 +1,16 @@
+Software Access Request Policy
+
+Employees requiring access to software applications must submit a service request.
+
+Required Information:
+
+1. Employee ID
+2. Application Name
+3. Business Justification
+4. Manager Approval
+
+Standard approval time is 2 business days.
+
+Requests involving production systems require Information Security approval.
+
+Emergency access requests must be approved by the Department Head.

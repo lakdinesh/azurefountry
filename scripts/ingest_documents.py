@@ -1,31 +1,50 @@
-from azure.search.documents import SearchClient
-from azure.core.credentials import AzureKeyCredential
-from app.config import settings
+from azure.identity import DefaultAzureCredential
+from azure.ai.projects import AIProjectClient
 
-client = SearchClient(
-    endpoint=settings.AZURE_SEARCH_ENDPOINT,
-    index_name=settings.AZURE_SEARCH_INDEX,
-    credential=AzureKeyCredential(settings.AZURE_SEARCH_KEY)
+from backend.app.config import settings
+from backend.app.search_service import search_company_knowledge
+
+
+project_client = AIProjectClient(
+    endpoint=settings.AZURE_AI_PROJECT_ENDPOINT,
+    credential=DefaultAzureCredential()
 )
 
-documents = [
-    {
-        "id": "1",
-        "content": "Employees can reset password using the self-service password reset portal.",
-        "source": "IT Policy"
-    },
-    {
-        "id": "2",
-        "content": "Critical incidents must be escalated to L2 support within 30 minutes.",
-        "source": "Incident Policy"
-    },
-    {
-        "id": "3",
-        "content": "VPN access requires MFA authentication using Microsoft Entra ID.",
-        "source": "Security Policy"
-    }
-]
+openai_client = project_client.get_openai_client()
 
-client.upload_documents(documents=documents)
 
-print("Documents uploaded successfully.")
+def run_agent(user_message: str) -> str:
+    knowledge = search_company_knowledge(user_message)
+
+    context = "\n\n".join(
+        [
+            f"Source: {doc.get('source', 'unknown')}\nContent: {doc.get('content', '')}"
+            for doc in knowledge
+        ]
+    )
+
+    final_prompt = f"""
+You are an Enterprise Support Agent.
+
+Answer the user question using only the company knowledge below.
+If the answer is not available in the company knowledge, say:
+"I don't know based on the available company documents."
+
+Company Knowledge:
+{context}
+
+User Question:
+{user_message}
+"""
+
+    response = openai_client.responses.create(
+        extra_body={
+            "agent_reference": {
+                "name": settings.AGENT_NAME,
+                "type": "agent_reference"
+            }
+        },
+        input=final_prompt
+    )
+
+    return response.output_text

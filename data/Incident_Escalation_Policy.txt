@@ -1,0 +1,24 @@
+Incident Escalation Policy
+
+Priority Levels
+
+P1 - Critical
+P2 - High
+P3 - Medium
+P4 - Low
+
+Escalation Rules
+
+P1 incidents:
+- Escalate within 30 minutes.
+- Notify Incident Manager immediately.
+
+P2 incidents:
+- Escalate within 2 hours.
+
+P3 incidents:
+- Escalate within 1 business day.
+
+Security incidents must always be escalated to the Security Operations Center.
+
+The L2 Support Team handles complex application and infrastructure incidents.

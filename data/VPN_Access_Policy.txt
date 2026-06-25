@@ -1,0 +1,15 @@
+VPN Access Policy
+
+All remote employees must use the corporate VPN.
+
+Requirements:
+
+1. Microsoft Entra ID account.
+2. Multi-Factor Authentication enabled.
+3. Approved company laptop.
+
+VPN requests require manager approval.
+
+Inactive VPN accounts are automatically disabled after 45 days.
+
+Security violations related to VPN usage must be reported immediately to the Security Operations Team.
