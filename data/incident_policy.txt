@@ -1,0 +1,10 @@
+Incident Management Policy
+
+An incident is an unplanned interruption or degradation of an IT service.
+
+P1 incidents are critical incidents affecting production services.
+P1 incidents must be escalated to L2 Support within 30 minutes.
+The Incident Manager must be notified immediately for P1 incidents.
+
+P2 incidents must be escalated within 2 hours.
+P3 incidents must be reviewed within 1 business day.

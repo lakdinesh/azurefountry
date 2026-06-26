@@ -1,50 +1,37 @@
-from azure.identity import DefaultAzureCredential
-from azure.ai.projects import AIProjectClient
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+from azure.core.credentials import AzureKeyCredential
+from azure.search.documents import SearchClient
 
-from backend.app.config import settings
-from backend.app.search_service import search_company_knowledge
+load_dotenv()
 
+ROOT = Path(__file__).resolve().parents[1]
+DATA_DIR = ROOT / "data"
 
-project_client = AIProjectClient(
-    endpoint=settings.AZURE_AI_PROJECT_ENDPOINT,
-    credential=DefaultAzureCredential()
+endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
+key = os.getenv("AZURE_SEARCH_KEY")
+index_name = os.getenv("AZURE_SEARCH_INDEX", "company-knowledge")
+
+client = SearchClient(
+    endpoint=endpoint,
+    index_name=index_name,
+    credential=AzureKeyCredential(key),
 )
 
-openai_client = project_client.get_openai_client()
+documents = []
 
+for file in DATA_DIR.glob("*.txt"):
+    documents.append({
+        "id": file.stem.replace("_", "-").lower(),
+        "content": file.read_text(encoding="utf-8"),
+        "source": file.name,
+    })
 
-def run_agent(user_message: str) -> str:
-    knowledge = search_company_knowledge(user_message)
+if not documents:
+    raise RuntimeError("No .txt files found in data folder.")
 
-    context = "\n\n".join(
-        [
-            f"Source: {doc.get('source', 'unknown')}\nContent: {doc.get('content', '')}"
-            for doc in knowledge
-        ]
-    )
+result = client.upload_documents(documents=documents)
 
-    final_prompt = f"""
-You are an Enterprise Support Agent.
-
-Answer the user question using only the company knowledge below.
-If the answer is not available in the company knowledge, say:
-"I don't know based on the available company documents."
-
-Company Knowledge:
-{context}
-
-User Question:
-{user_message}
-"""
-
-    response = openai_client.responses.create(
-        extra_body={
-            "agent_reference": {
-                "name": settings.AGENT_NAME,
-                "type": "agent_reference"
-            }
-        },
-        input=final_prompt
-    )
-
-    return response.output_text
+for item in result:
+    print(item)

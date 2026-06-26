@@ -1,0 +1,60 @@
+name: Build Test Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AZURE_CONTAINER_APP_BACKEND: foundry-agent-backend
+  AZURE_CONTAINER_APP_FRONTEND: foundry-agent-frontend
+  AZURE_RESOURCE_GROUP: rg-foundry-agent
+  AZURE_CONTAINER_APP_ENV: foundry-agent-env
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: |
+          pytest tests/test_guardrails.py tests/test_tools.py
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy backend to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}
+          dockerfilePath: Dockerfile.backend
+          containerAppName: ${{ env.AZURE_CONTAINER_APP_BACKEND }}
+          resourceGroup: ${{ env.AZURE_RESOURCE_GROUP }}
+          containerAppEnvironment: ${{ env.AZURE_CONTAINER_APP_ENV }}
+
+      - name: Deploy frontend to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}
+          dockerfilePath: Dockerfile.frontend
+          containerAppName: ${{ env.AZURE_CONTAINER_APP_FRONTEND }}
+          resourceGroup: ${{ env.AZURE_RESOURCE_GROUP }}
+          containerAppEnvironment: ${{ env.AZURE_CONTAINER_APP_ENV }}

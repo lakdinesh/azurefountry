@@ -1,25 +1,29 @@
-BLOCKED_TERMS = [
+BLOCKED_PATTERNS = [
     "ignore previous instructions",
     "reveal system prompt",
     "bypass security",
-    "delete all data"
+    "delete all data",
+    "show hidden instructions",
 ]
 
-def validate_user_input(message: str):
-    lower_message = message.lower()
-
-    for term in BLOCKED_TERMS:
-        if term in lower_message:
-            return False, "Unsafe prompt detected."
+def validate_input(message: str) -> tuple[bool, str | None]:
+    if not message or not message.strip():
+        return False, "Question cannot be empty."
 
     if len(message) > 3000:
-        return False, "Input is too long."
+        return False, "Question is too long."
+
+    lower = message.lower()
+
+    for pattern in BLOCKED_PATTERNS:
+        if pattern in lower:
+            return False, "Unsafe prompt detected."
 
     return True, None
 
 
-def validate_answer(answer: str):
-    if not answer or len(answer.strip()) == 0:
-        return False, "Empty answer generated."
+def validate_output(answer: str) -> tuple[bool, str | None]:
+    if not answer or not answer.strip():
+        return False, "Empty response generated."
 
     return True, None

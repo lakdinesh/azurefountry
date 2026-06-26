@@ -14,10 +14,6 @@ if settings.APPLICATIONINSIGHTS_CONNECTION_STRING:
         configure_azure_monitor(
             connection_string=settings.APPLICATIONINSIGHTS_CONNECTION_STRING
         )
-
         logger.info("Application Insights enabled.")
-
     except Exception as e:
         logger.warning("Application Insights disabled: %s", e)
-else:
-    logger.info("Application Insights connection string not configured.")

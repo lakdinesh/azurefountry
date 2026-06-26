@@ -1,11 +1,12 @@
+from typing import Any
 from pydantic import BaseModel
-from typing import List, Dict
 
 class ChatRequest(BaseModel):
     message: str
 
 class ChatResponse(BaseModel):
     answer: str
-    sources: List[str]
+    sources: list[str]
+    tool_result: dict[str, Any] | None
     latency_ms: float
-    tokens: Dict
+    tokens: dict[str, Any]
